@@ -42,9 +42,9 @@
 %                (exp(1)*(t-tau).^2/sigma^2) .* exp(-(tHRF-tau).^2/sigma^2)
 %            3. a modified gamma function and its derivative convolved
 %                with a square-wave of duration T. Set T=0 for no convolution.
-%			 4.  GAM function from 3dDeconvolve AFNI convolved with
+%            4.  GAM function from 3dDeconvolve AFNI convolved with
 %                a square-wave of duration T. Set T=0 for no convolution.
-% 			         (t/(p*q))^p * exp(p-t/q)
+%                    (t/(p*q))^p * exp(p-t/q)
 %                Defaults: p=8.6 q=0.547
 %                The peak is at time p*q.  The FWHM is about 2.3*sqrt(p)*q.
 % paramsBasis - Parameters for the basis function depends on idxBasis
@@ -107,11 +107,11 @@
 %
 % PREREQUISITES:
 % Delta_OD_to_Conc: dc = hmrR_OD2Conc( dod, probe, ppf )
-
+ 
 function [data_yavg, data_yavgstd, nTrials, data_ynew, data_yresid, data_ysum2, beta_blks, yR_blks, hmrstats] = ...
     hmrS_GLM(dcRuns, stimRuns, probe, mlActRuns, AauxRuns, tIncAutoRuns, rcMapRuns, trange, glmSolveMethod, idxBasis, paramsBasis, rhoSD_ssThresh, flagNuisanceRMethod, driftOrder, c_vector)
-
-
+ 
+ 
 % Init output
 data_yavg     = DataClass().empty();
 data_yavgstd  = DataClass().empty();
@@ -122,7 +122,7 @@ stim          = StimClass();
 data_y        = DataClass();
 beta_label    = [];
 hmrstats      = [];
-
+ 
 % #### Concatenate runs for session level GLM ####
 % concatenate y
 foo_y = dcRuns{1}.dataTimeSeries;
@@ -134,32 +134,44 @@ for i = 1:size(dcRuns,2)-1
     foo_t = cat(1,foo_t,dcRuns{i+1}.time + max(foo_t(:)) + dt_foo);
     max_t(i+1) = max(foo_t);
 end
-
+ 
 data_y.dataTimeSeries = foo_y;
 data_y.time = foo_t;
 data_y.measurementList = dcRuns{1}.measurementList;
-
+ 
 % concatenate stims
-stim.name = stimRuns{1}.name;
-
 for j = 1:size(stimRuns{1},2) % across conditions
+    
+    if isempty(stimRuns{1}(j).data) == 1
+        stimRuns{1}(j).data = [0 0 0];
+        stimRuns{1}(j).states = [0 0];
+    end
     
     foo_stim_data = stimRuns{1}(j).data; % get data from the first run
     foo_stim_states = stimRuns{1}(j).states;
     
     for i = 1:size(dcRuns,2)-1  % across runs: concatenate data from other runs to first run
+       
+        if isempty(stimRuns{i+1}(j).data) == 1
+            stimRuns{i+1}(j).data = [0 0 0];
+            stimRuns{i+1}(j).states = [0 0];
+        end  
+        
         % update time on stim object
         stimRuns{i+1}(j).data(:,1) = stimRuns{i+1}(j).data(:,1) + max_t(i) + dt_foo;
         stimRuns{i+1}(j).states(:,1) = stimRuns{i+1}(j).states(:,1) + max_t(i) + dt_foo;
         % concatenate
         foo_stim_data = cat(1,foo_stim_data,stimRuns{i+1}(j).data);
         foo_stim_states = cat(1,foo_stim_states,stimRuns{i+1}(j).states);
+        
     end
+    
+    stim(j).name = stimRuns{1}(j).name;
     stim(j).data =  foo_stim_data;
     stim(j).states =  foo_stim_states;
     
 end
-
+ 
 % concatenate tIncAuto and mlActRuns and AauxRuns
 foo_tIncAutoRuns = cell2mat(tIncAutoRuns{1});
 foo_mlActRuns = cell2mat(mlActRuns{1});
@@ -169,17 +181,17 @@ for i = 1:size(dcRuns,2)-1
     foo_mlActRuns = cat(1,foo_mlActRuns,cell2mat(mlActRuns{i+1}));
     foo_AauxRuns = cat(1,foo_AauxRuns,cell2mat(AauxRuns{i+1}));
 end
-
+ 
 tIncAuto{1} = foo_tIncAutoRuns;
 mlActAuto{1} =  foo_mlActRuns;
 Aaux =  foo_AauxRuns;
 % #### end ####
-
-
+ 
+ 
 % Further init output
 beta_blks     = cell(length(data_y),1);
 yR_blks       = cell(length(data_y),1);
-
+ 
 % Check input args
 if isempty(tIncAuto)
     tIncAuto = cell(length(data_y),1);
@@ -187,7 +199,7 @@ end
 if isempty(mlActAuto)
     mlActAuto = cell(length(data_y),1);
 end
-
+ 
 % Get stim vector by instantiating temporary SnirfClass object with this
 % function's stim argument as input, and then using the SnirfClass object's
 % GetStims method to convert stim to the s vector that this function needs.
@@ -195,7 +207,7 @@ snirf = SnirfClass(data_y, stim);
 t = snirf.GetTimeCombined();
 s = snirf.GetStims(t);
 nTrials = repmat({zeros(1, size(s,2))}, length(data_y), 1);
-
+ 
 for iBlk=1:length(data_y)
     
     data_yavg(iBlk)    = DataClass();
@@ -907,3 +919,5 @@ for iBlk=1:length(data_y)
     end
     
 end
+
+

@@ -4,6 +4,7 @@ global QUICK_TEST
 global procStreamStyle
 global testidx;
 global logger
+global maingui
 
 if ~exist('standalone','var') || isempty(standalone)
     standalone = true;
@@ -18,6 +19,7 @@ end
 
 % Clear global variables
 if start
+    maingui = [];
     delete(logger)
     logger = [];
     close all force
@@ -41,10 +43,10 @@ if ~start
     fprintf('\n');
     for ii = 1:length(groupFolders)
         pname = filesepStandard([rootpath, groupFolders{ii}]);
-        fprintf('   Deleting %s*.snirf files ...\n', pname);
+        fprintf('Deleting %s*.snirf files: \n', pname);
         DeleteDataFiles(pname, '.snirf');
     end
-    fprintf('\n');
+    fprintf('\n\n');
 end
 
 fclose all;

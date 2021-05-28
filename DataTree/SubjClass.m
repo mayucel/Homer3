@@ -216,7 +216,7 @@ classdef SubjClass < TreeNodeClass
             if isempty(obj)
                 return;
             end
-            err1 = obj.procStream.Load(obj.GetFilename);
+            err1 = obj.procStream.Load([obj.path, obj.GetFilename]);
             err2 = obj.runs(1).Load();
             if err1==0 && err2==0
                 err = 0;
@@ -370,8 +370,23 @@ classdef SubjClass < TreeNodeClass
             if isempty(obj)
                 return;
             end
-            for ii=1:length(obj.runs)
+            for ii = 1:length(obj.runs)
                 if ~obj.runs(ii).IsEmpty()
+                    b = false;
+                    break;
+                end
+            end
+        end
+
+
+        % ----------------------------------------------------------------------------------
+        function b = IsEmptyOutput(obj)
+            b = true;
+            if isempty(obj)
+                return;
+            end
+            for ii = 1:length(obj.runs)
+                if ~obj.runs(ii).IsEmptyOutput()
                     b = false;
                     break;
                 end

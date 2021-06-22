@@ -90,7 +90,9 @@
 %           (#coefficients x HbX x #Channels x #conditions)
 % R - the correlation coefficient of the GLM fit to the data
 %     (#Channels x HbX)
-% hmrstats - outputs t and pvalues for GLM
+% hmrstats - outputs t and p values for GLM and the corresponding beta_label and ml
+%     (#Betas x #Channels x HbX) for conditions
+%     (#Channels x HbX) for contrasts 
 %
 % USAGE OPTIONS:
 % GLM_HRF_Drift_SS_Concentration: [dcAvg, dcAvgStd, nTrials, dcNew, dcResid, dcSum2, beta, R, hmrstats] = hmrS_GLM(dcRuns, stimRuns, probe, mlActRuns, AauxRuns, tIncAutoRuns, rcMapRuns, trange, glmSolveMethod, idxBasis, paramsBasis, rhoSD_ssThresh, flagNuisanceRMethod, driftOrder, c_vector)
@@ -903,25 +905,31 @@ for iBlk=1:length(data_y)
     beta_blks{iBlk} = beta;
     yR_blks{iBlk}   = yR;
     
-    % stats struct
+   % stats struct
     if glmSolveMethod == 1 % for OLS
         % GLM stats for each condition
+        if exist('tval')
         hmrstats.beta_label = beta_label;
         hmrstats.tval = tval;
         hmrstats.pval = pval;
         hmrstats.ml = ml;
+        end
     else                   % for iWLS
+        if exist('tstat')
         hmrstats.beta_label = beta_label;
         hmrstats.tval = tstat;
         hmrstats.pval = pval;
         hmrstats.ml = ml;
+        end
     end
     
     % GLM stats for contrast between conditions, if c_vector exists
     if (sum(abs(c_vector)) ~= 0) && (size(c_vector,2) == nCond) && nCond>1
+        if exist('tval_contrast')
         hmrstats.tval_contrast = tval_contrast;
         hmrstats.pval_contrast = pval_contrast;
         hmrstats.contrast = c_vector;
+        end
     end
     
 end

@@ -85,7 +85,9 @@
 %           (#coefficients x HbX x #Channels x #conditions)
 % R - the correlation coefficient of the GLM fit to the data
 %     (#Channels x HbX)
-% hmrstats - outputs t and pvalues for GLM
+% hmrstats - outputs t and p values for GLM and the corresponding beta_label and ml
+%     (#Betas x #Channels x HbX) for conditions
+%     (#Channels x HbX) for contrasts 
 %
 % USAGE OPTIONS:
 % GLM_HRF_Drift_SS_Concentration: [dcAvg, dcAvgStd, nTrials, dcNew, dcResid, dcSum2, beta, R, hmrstats] = hmrR_GLM(dc, stim, probe, mlActAuto, Aaux, tIncAuto, rcMap, trange, glmSolveMethod, idxBasis, paramsBasis, rhoSD_ssThresh, flagNuisanceRMethod, driftOrder, c_vector)
@@ -241,9 +243,9 @@ for iBlk=1:length(data_y)
         nTrials{iBlk}(iCond) = length(lst);
         % Generate basis boxcars of stim amplitude and duration
         starts = lst+nPre;
-        if ~isempty(stim(iCond).data)
-            durations = stim(iCond).data(:, 2);
-            amplitudes = stim(iCond).data(:, 3);
+        if ~isempty(stim(lstCond(iCond)).data)
+            durations = stim(lstCond(iCond)).data(:, 2);
+            amplitudes = stim(lstCond(iCond)).data(:, 3);
             for i = 1:length(starts)
                 if idxBasis == 1  % Gaussian has no duration T (yet)
                    pulse_duration = 1; 
@@ -802,22 +804,28 @@ for iBlk=1:length(data_y)
  % stats struct
     if glmSolveMethod == 1 % for OLS
         % GLM stats for each condition
+        if exist('tval')
         hmrstats.beta_label = beta_label;
         hmrstats.tval = tval;
         hmrstats.pval = pval;
         hmrstats.ml = ml;
+        end
     else                   % for iWLS
+        if exist('tstat')
         hmrstats.beta_label = beta_label;
         hmrstats.tval = tstat;
         hmrstats.pval = pval;
         hmrstats.ml = ml;
+        end
     end
     
     % GLM stats for contrast between conditions, if c_vector exists
     if (sum(abs(c_vector)) ~= 0) && (size(c_vector,2) == nCond) && nCond>1
+        if exist('tval_contrast')
         hmrstats.tval_contrast = tval_contrast;
         hmrstats.pval_contrast = pval_contrast;
         hmrstats.contrast = c_vector;
+        end
     end
     
 end

@@ -542,6 +542,7 @@ for iBlk=1:length(data_y)
     
     nCh = size(y,3);
     
+
     % Exit if not enough data to analyze the 3 here is arbitrary.
     % Certainly needs to be larger than 1
     if length(lstInc)<3*size(A,2) | nCond==0
@@ -668,6 +669,7 @@ for iBlk=1:length(data_y)
             
             At = [At(:,1:size(dA,2)) fooAt];
             % #### end ####
+                            
             
             if ~isempty(lstML)
                 
@@ -755,12 +757,7 @@ for iBlk=1:length(data_y)
                     yest(:,lstML,conc) = At * foo(:,lstML,conc);
                     yvar(1,lstML,conc) = sum((squeeze(y(:,conc,lstML))-yest(:,lstML,conc)).^2)./(size(y,1)-1); % check this against eq(53) in Ye2009
                     
-                    % initialize tval,pval,tval_contrast, pval_contrast
-                    tval = zeros(size(At,2), size(rhoSD,1), 2);
-                    pval = NaN(size(At,2), size(rhoSD,1), 2);
-                    tval_contrast = zeros(1, size(rhoSD,1), 2);
-                    pval_contrast = NaN(1, size(rhoSD,1), 2);
-                    
+                   
                     for iCh = 1:length(lstML)
                         
                         % GLM stats for each condition
@@ -912,30 +909,42 @@ for iBlk=1:length(data_y)
     beta_blks{iBlk} = beta;
     yR_blks{iBlk}   = yR;
     
-   % stats struct
+    % stats struct
     if glmSolveMethod == 1 % for OLS
         % GLM stats for each condition
         if exist('tval')
-        hmrstats.beta_label = beta_label;
-        hmrstats.tval = tval;
-        hmrstats.pval = pval;
-        hmrstats.ml = ml;
+            if size(tval,2)<size(ml,1)
+                tval(:,size(tval,2)+1:size(ml,1),:) = 0;
+                pval(:,size(tval,2)+1:size(ml,1),:) = NaN;
+            end
+            hmrstats.beta_label = beta_label;
+            hmrstats.tval = tval;
+            hmrstats.pval = pval;
+            hmrstats.ml = ml;
         end
     else                   % for iWLS
         if exist('tstat')
-        hmrstats.beta_label = beta_label;
-        hmrstats.tval = tstat;
-        hmrstats.pval = pval;
-        hmrstats.ml = ml;
+            if size(tstat,2)<size(ml,1)
+                tstat(:,size(tstat,2)+1:size(ml,1),:) = 0;
+                pval(:,size(tstat,2)+1:size(ml,1),:) = NaN;
+            end
+            hmrstats.beta_label = beta_label;
+            hmrstats.tval = tstat;
+            hmrstats.pval = pval;
+            hmrstats.ml = ml;
         end
     end
     
     % GLM stats for contrast between conditions, if c_vector exists
     if (sum(abs(c_vector)) ~= 0) && (size(c_vector,2) == nCond) && nCond>1
         if exist('tval_contrast')
-        hmrstats.tval_contrast = tval_contrast;
-        hmrstats.pval_contrast = pval_contrast;
-        hmrstats.contrast = c_vector;
+            if size(tval_contrast,2)<size(ml,1)
+                tval_contrast(:,size(tval_contrast,2)+1:size(ml,1),:) = 0;
+                pval_contrast(:,size(tval_contrast,2)+1:size(ml,1),:) = 0;
+            end
+            hmrstats.tval_contrast = tval_contrast;
+            hmrstats.pval_contrast = pval_contrast;
+            hmrstats.contrast = c_vector;
         end
     end
     

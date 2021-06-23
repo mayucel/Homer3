@@ -754,6 +754,13 @@ for iBlk=1:length(data_y)
                     pAinvAinvD = diag(pinvA*pinvA');
                     yest(:,lstML,conc) = At * foo(:,lstML,conc);
                     yvar(1,lstML,conc) = sum((squeeze(y(:,conc,lstML))-yest(:,lstML,conc)).^2)./(size(y,1)-1); % check this against eq(53) in Ye2009
+                    
+                    % initialize tval,pval,tval_contrast, pval_contrast
+                    tval = zeros(size(At,2), size(rhoSD,1), 2);
+                    pval = NaN(size(At,2), size(rhoSD,1), 2);
+                    tval_contrast = zeros(1, size(rhoSD,1), 2);
+                    pval_contrast = NaN(1, size(rhoSD,1), 2);
+                    
                     for iCh = 1:length(lstML)
                         
                         % GLM stats for each condition
